@@ -7,7 +7,7 @@ pg.init()
 width=1200
 height=400
 screen = pg.display.set_mode((width, height))
-r=400
+
 
 file = Path("lines.npy")
 
@@ -67,25 +67,31 @@ def check_lineseg(walls, ray):
         return valid_inter_array_cords[idx],mini_dist
     else :return -1,-1
 clock = pg.time.Clock()
-xpos=300
+xpos=100
 ypos=200
 x_vel=0
 y_vel=0
 g=0.00
+r=300
 pos=[xpos,ypos]
 drag=0
 curr_dirc=0
-fov=90
+fov=60
 offset=600
 rect_width=(width-offset)/fov
-
+prev_mouse_pos=None
+mouse_scale=2
+step_size=4
 while True:
     mousex,mousey=pg.mouse.get_pos()
+    if prev_mouse_pos:
+        mouse_velvec_x=mousex-prev_mouse_pos[0]
+        print(mouse_velvec_x)
+        curr_dirc+=mouse_velvec_x/mouse_scale
     keys = pg.key.get_pressed()
     if keys[pg.K_w]:
-        curr_dirc += 4
-    if keys[pg.K_s]:
-        curr_dirc -= 4
+        pos[0]+=step_size*math.cos(math.radians(curr_dirc))
+        pos[1]+=step_size*math.sin(math.radians(curr_dirc))
     for e in pg.event.get():
         if e.type == pg.QUIT: pg.quit(); sys.exit()
         if (e.type == pg.MOUSEBUTTONDOWN and mousex<=pos[0]+6 and mousex>pos[0]-6
@@ -125,11 +131,13 @@ while True:
             pg.draw.line(screen,(255,255,255),pos,
                     (pos[0]+r*math.cos(math.radians(theta)), pos[1]+r*math.sin(math.radians(theta))))
         if(mini_dist == -1):mini_dist=r
-        rect_height=height*pow(2,(-mini_dist/r))
-        rect_clr=255*pow(2,3*(-mini_dist/r))
+        rect_height=height*pow(2,(-mini_dist/r))#expo fuction 
+        rect_height=150+250*((300-mini_dist)/r)#
+        rect_clr=255*pow(2,3.5*(-mini_dist/r))
         
         x_pos_rect_arr.append(theta_mapped*rect_width+offset)
-        pg.draw.rect(screen,(rect_clr,rect_clr,rect_clr),(theta_mapped*rect_width+offset, int(height/2-rect_height/2), rect_width, rect_height))
-    print(x_pos_rect_arr)
+        pg.draw.rect(screen,(rect_clr,rect_clr,rect_clr),(theta_mapped*rect_width+offset, height/2-rect_height/2, rect_width, rect_height))
+    #print(x_pos_rect_arr)
+    prev_mouse_pos=(mousex,mousey)
     pg.display.flip()
-    clock.tick(60)
+    clock.tick(30)
